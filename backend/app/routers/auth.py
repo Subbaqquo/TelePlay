@@ -27,7 +27,7 @@ from ..auth import (
     verify_token_payload,
     get_current_user,
 )
-from ..telegram import tg_client
+from .. import telegram
 
 # Get limiter from main app
 limiter = Limiter(key_func=get_remote_address)
@@ -40,7 +40,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 async def get_bot_info_endpoint():
     """Get bot username and name for the login screen."""
     try:
-        me = await tg_client.get_me()
+        me = await telegram.tg_client.get_me()
         return BotInfoResponse(
             username=me.username,
             name=f"{me.first_name} {me.last_name or ''}".strip(),
