@@ -65,8 +65,8 @@ services:
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
-      # Persist Telegram session
-      - telegram_session:/app
+      # Persist Telegram session files only (do not mount over /app — that hides rebuilt code)
+      - telegram_session:/app/session
     networks:
       - telegram-tv-network
 

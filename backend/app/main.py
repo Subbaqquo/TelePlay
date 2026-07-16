@@ -21,9 +21,6 @@ from .database import init_db
 from .telegram import start_telegram_client, stop_telegram_client
 from .routers import files_router, folders_router, streaming_router, auth_router, tv_router
 
-# Import bot to register handlers
-from . import bot  # noqa
-
 settings = get_settings()
 
 # Rate limiter - uses IP address by default

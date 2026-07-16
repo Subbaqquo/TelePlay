@@ -13,7 +13,8 @@ from slowapi.util import get_remote_address
 from ..database import get_db
 from ..models import File, User
 from ..auth import get_current_user
-from ..telegram import get_message_from_channel, tg_client
+from .. import telegram
+from ..telegram import get_message_from_channel
 from ..streaming import stream_file as stream_file_generator
 
 # Logger for internal debugging (not exposed to users)
@@ -82,7 +83,7 @@ async def stream_file(
     async def file_streamer():
         """Generator that streams file chunks from Telegram MTProto."""
         async for chunk in stream_file_generator(
-            tg_client,
+            telegram.tg_client,
             message,
             from_bytes,
             until_bytes
@@ -149,14 +150,14 @@ async def get_thumbnail(
             # Try using the file_id directly if stored (fallback)
             if file.thumbnail_file_id:
                 try:
-                    thumb_bytes = await tg_client.download_media(file.thumbnail_file_id, in_memory=True)
+                    thumb_bytes = await telegram.tg_client.download_media(file.thumbnail_file_id, in_memory=True)
                     return Response(content=thumb_bytes.getvalue(), media_type="image/jpeg")
                 except Exception:
                     pass
             raise HTTPException(status_code=404, detail="Thumbnail not found in message")
         
         # Download thumbnail to memory
-        thumb_bytes = await tg_client.download_media(thumbnail.file_id, in_memory=True)
+        thumb_bytes = await telegram.tg_client.download_media(thumbnail.file_id, in_memory=True)
         
         return Response(
             content=thumb_bytes.getvalue(),
@@ -208,7 +209,7 @@ async def stream_public_file(
     async def file_streamer():
         """Generator that streams file chunks from Telegram MTProto."""
         async for chunk in stream_file_generator(
-            tg_client,
+            telegram.tg_client,
             message,
             from_bytes,
             until_bytes

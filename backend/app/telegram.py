@@ -21,25 +21,30 @@ def get_session_name(index: int) -> str:
     return str(SESSION_DIR / f"bot_{index}")
 
 
-# Build a pool: main token first, then any helper tokens
-tokens = settings.all_bot_tokens
-clients = []
+# Created in build_clients() inside the running event loop (see start_telegram_client).
+clients: list[Client] = []
+tg_client: Client | None = None
 
-for i, token in enumerate(tokens):
-    client = Client(
-        name=get_session_name(i),
-        api_id=settings.telegram_api_id,
-        api_hash=settings.telegram_api_hash,
-        bot_token=token,
-        ipv6=False,
-        max_concurrent_transmissions=settings.telegram_client_concurrency,
-        no_updates=(i > 0),          # only main client receives updates
-    )
-    client.pool_index = i            # custom attr for logging
-    clients.append(client)
 
-# Main client — used for bot commands, message fetching, forwarding, etc.
-tg_client = clients[0]
+def build_clients() -> None:
+    """Build client pool lazily so Pyrogram binds to uvicorn's event loop."""
+    global tg_client
+    if clients:
+        return
+    SESSION_DIR.mkdir(parents=True, exist_ok=True)
+    for i, token in enumerate(settings.all_bot_tokens):
+        client = Client(
+            name=get_session_name(i),
+            api_id=settings.telegram_api_id,
+            api_hash=settings.telegram_api_hash,
+            bot_token=token,
+            ipv6=False,
+            max_concurrent_transmissions=settings.telegram_client_concurrency,
+            no_updates=(i > 0),          # only main client receives updates
+        )
+        client.pool_index = i            # custom attr for logging
+        clients.append(client)
+    tg_client = clients[0]
 
 
 # ── lifecycle helpers ────────────────────────────────────────────────
@@ -75,6 +80,8 @@ async def stop_all_clients():
 
 async def start_telegram_client():
     """Called from app lifespan — starts the full pool."""
+    build_clients()
+    from . import bot  # noqa: F401 — register handlers after client exists
     await start_all_clients()
 
 
