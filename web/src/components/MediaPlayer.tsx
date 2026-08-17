@@ -7,7 +7,7 @@ import { TelegramFile, formatDuration, useUpdateProgress, useFile, api } from '.
 import { useAppStore } from '../lib/store';
 
 export default function MediaPlayer() {
-    const { previewFile: file, setPreviewFile, isPlayerMinimized, setPlayerMinimized, videoPlaylist, autoPlay, setAutoPlay } = useAppStore();
+    const { previewFile: file, setPreviewFile, isPlayerMinimized, setPlayerMinimized } = useAppStore();
     
     if (!file) return null;
 
@@ -22,6 +22,7 @@ interface MediaPlayerContentProps {
 }
 
 function MediaPlayerContent({ file, onClose, isMinimized, setMinimized }: MediaPlayerContentProps) {
+    const { setPreviewFile, videoPlaylist, autoPlay, setAutoPlay } = useAppStore();
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
