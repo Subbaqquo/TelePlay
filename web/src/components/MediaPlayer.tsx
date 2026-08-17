@@ -7,7 +7,7 @@ import { TelegramFile, formatDuration, useUpdateProgress, useFile, api } from '.
 import { useAppStore } from '../lib/store';
 
 export default function MediaPlayer() {
-    const { previewFile: file, setPreviewFile, isPlayerMinimized, setPlayerMinimized } = useAppStore();
+    const { previewFile: file, setPreviewFile, isPlayerMinimized, setPlayerMinimized, videoPlaylist, autoPlay, setAutoPlay } = useAppStore();
     
     if (!file) return null;
 
@@ -267,6 +267,24 @@ function MediaPlayerContent({ file, onClose, isMinimized, setMinimized }: MediaP
             videoRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
         }
     }, [error, file.id]); // Re-run when file changes
+
+    // Auto-play next video when current video ends
+    useEffect(() => {
+        const videoEl = videoRef.current;
+        if (!videoEl) return;
+
+        const handleEnded = () => {
+            if (!autoPlay || !file) return;
+            const currentIndex = videoPlaylist.findIndex(f => f.id === file.id);
+            if (currentIndex >= 0 && currentIndex < videoPlaylist.length - 1) {
+                const nextFile = videoPlaylist[currentIndex + 1];
+                setPreviewFile(nextFile);
+            }
+        };
+
+        videoEl.addEventListener('ended', handleEnded);
+        return () => videoEl.removeEventListener('ended', handleEnded);
+    }, [autoPlay, file?.id, videoPlaylist, setPreviewFile]);
 
     const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -591,6 +609,21 @@ function MediaPlayerContent({ file, onClose, isMinimized, setMinimized }: MediaP
                                     <Gauge className="w-4 h-4" />
                                     <span>{playbackSpeed}x</span>
                                 </button>
+
+                                {/* Auto-play next */}
+                                {isVideo && videoPlaylist.length > 1 && (
+                                    <button
+                                        onClick={() => setAutoPlay(!autoPlay)}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${autoPlay
+                                            ? 'bg-green-500/30 text-green-300 border border-green-500/40'
+                                            : 'bg-white/10 text-white/80 border border-white/10 hover:bg-white/20 hover:text-white'
+                                            }`}
+                                        title="Auto-play next video"
+                                    >
+                                        <span>{autoPlay ? 'ON' : 'OFF'}</span>
+                                        <span>Auto</span>
+                                    </button>
+                                )}
 
                                 {/* PiP */}
                                 {isVideo && document.pictureInPictureEnabled && (

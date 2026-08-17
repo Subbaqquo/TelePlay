@@ -30,6 +30,7 @@ export default function FileBrowser() {
         setViewMode,
         previewFile,
         setPreviewFile,
+        setVideoPlaylist,
         showNewFolder,
         setShowNewFolder,
         moveItems,
@@ -323,6 +324,9 @@ export default function FileBrowser() {
     // Handle File Open / Play
     const handleFileOpen = (file: TelegramFile) => {
         if (file.file_type === 'video' || file.file_type === 'audio') {
+            // Populate playlist with all video/audio files in current view
+            const mediaFiles = (displayFiles || []).filter(f => f.file_type === 'video' || f.file_type === 'audio');
+            setVideoPlaylist(mediaFiles);
             setPreviewFile(file);
         } else {
             // For now, do nothing or show a toast

@@ -55,6 +55,12 @@ interface AppState {
     isPlayerMinimized: boolean;
     setPlayerMinimized: (minimized: boolean) => void;
 
+    // Playlist / Auto-play
+    videoPlaylist: TelegramFile[];
+    setVideoPlaylist: (files: TelegramFile[]) => void;
+    autoPlay: boolean;
+    setAutoPlay: (v: boolean) => void;
+
     // Search
     searchQuery: string;
     setSearchQuery: (query: string) => void;
@@ -166,6 +172,12 @@ export const useAppStore = create<AppState>((set) => ({
     // Player state
     isPlayerMinimized: false,
     setPlayerMinimized: (minimized) => set({ isPlayerMinimized: minimized }),
+
+    // Playlist / Auto-play
+    videoPlaylist: [],
+    setVideoPlaylist: (files) => set({ videoPlaylist: files }),
+    autoPlay: true,
+    setAutoPlay: (v) => set({ autoPlay: v }),
 
     // Search
     searchQuery: '',
