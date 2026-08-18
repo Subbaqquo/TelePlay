@@ -26,10 +26,14 @@ engine = create_async_engine(
     url, 
     echo=False,
     pool_pre_ping=True,
-    pool_recycle=300,  # Recycle connections every 30 minutes
-    pool_size=5,       # Increased pool size for high concurrency
-    max_overflow=5,     # Allow more overflow connections
-    pool_timeout=30,    # Timeout after 30s waiting for connection
+    pool_recycle=300,
+    pool_size=5,
+    max_overflow=5,
+    pool_timeout=30,
+    connect_args={
+        "statement_cache_size": 0,
+        "prepared_statement_cache_size": 0,
+    },
 )
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
